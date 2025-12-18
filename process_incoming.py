@@ -32,7 +32,7 @@ def chat_openrouter(prompt):
     r = requests.post(
         url="https://openrouter.ai/api/v1/chat/completions",
         headers={
-            "Authorization": "Bearer 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",
+            "Authorization": "Bearer <API KEY>",
             "Content-Type": "application/json"
         },
         json={
