@@ -1,10 +1,15 @@
 
 import requests
-
+import os
 import numpy as  np
 import pandas as pd
 import joblib
 from sklearn.metrics.pairwise import cosine_similarity
+from dotenv import load_dotenv
+
+load_dotenv() 
+
+api_key = os.getenv("OPENAI_API_KEY")
 
 
 def create_embedding(text_list):
@@ -32,7 +37,7 @@ def chat_openrouter(prompt):
     r = requests.post(
         url="https://openrouter.ai/api/v1/chat/completions",
         headers={
-            "Authorization": "Bearer <API KEY>",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         },
         json={
