@@ -5,11 +5,12 @@ import numpy as  np
 import pandas as pd
 import joblib
 from sklearn.metrics.pairwise import cosine_similarity
+from google import genai
 from dotenv import load_dotenv
 
 load_dotenv() 
 
-api_key = os.getenv("OPENAI_API_KEY")
+AI_KEY  = os.getenv("API_KEY")
 
 
 def create_embedding(text_list):
@@ -20,35 +21,16 @@ def create_embedding(text_list):
     embedding = r.json()["embeddings"]
     return embedding
 
-# def create_LLM_responce(prompt):
-#     r  = requests.post("http://localhost:1234/v1/chat/completions",json={
-#         "model": "llama-3.2-3b-instruct",
-#         "messages": [
-#             {"role": "user", "content": prompt}
-#         ],
-#         "temperature": 0.7
 
-        
-#     })
-#     response  = r.json()
-#     return response['choices'][0]['message']['content']
-
-def chat_openrouter(prompt):
-    r = requests.post(
-        url="https://openrouter.ai/api/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        },
-        json={
-            "model": "openai/gpt-oss-20b:free",
-            "messages": [
-                {"role": "user", "content": prompt}
-            ]
-        }
+def ai_responce(prompt):
+    client = genai.Client(api_key=AI_KEY)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
     )
-    response = r.json()
-    return response['choices'][0]['message']['content']
+    return response
+
+
 
 df  = joblib.load("embedding.joblib")
 
@@ -56,13 +38,12 @@ incoming_query  = input("Ask any question : ")
 question_embedding  = create_embedding([incoming_query])[0]
 
 similarityes  = cosine_similarity(np.vstack(df['embedding']),[question_embedding]).flatten()
-print(similarityes)
-print("------------")
+
 top_result  = 5
 max_index  = similarityes.argsort()[::-1][0:top_result]
-# print(max_index)
+
 new_df = df.loc[max_index]
-# print(new_df[["title","number","text"]])
+
 
 prompt  = f'''
 I am teaching web development in my Sigma web development course. Here are video subtitle chunks containing video title, video number, start time in seconds, end time in seconds, the text at that time:
@@ -72,10 +53,12 @@ I am teaching web development in my Sigma web development course. Here are video
 User asked this question related to the video chunks, you have to answer in a human way (dont mention the above format, its just for you) where and how much content is taught in which video (in which video and at what timestamp) and guide the user to go to that particular video. If user asks unrelated question, tell him that you can only answer questions related to the course
 
 '''
-print(prompt)
+# print(prompt)
 # response  = create_LLM_responce(prompt)
-response  = chat_openrouter(prompt)
+response  = ai_responce(prompt)
+
+
 print(response)
-with open("responce.txt","w",encoding="utf-8") as f:
-    f.write(response)
+with open("responce.md","w",encoding="utf-8") as f:
+    f.write(response.text)
 
